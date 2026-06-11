@@ -9,10 +9,9 @@ cursor = connection.cursor()
 # Get table structure from 'schema.sql' and apply it to 'support_center.db'
 def structure_table():
     try: 
-        # Read the 'schema.sql' file and store as sql_script
-        # Data from the file is stored as plain string
         with open('schema.sql', 'r') as file:
-            #Read File
+            # Read the 'schema.sql' file and store as sql_script
+            # Data from the file is stored as plain string
             sql_script = file.read()
 
             # Use cursor.executescript() instead of .execute() to parse multiple lines of SQL
