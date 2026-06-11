@@ -28,3 +28,5 @@ def structure_table():
         # Close connections for safety
         cursor.close()
         connection.close()
+
+structure_table()
