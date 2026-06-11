@@ -2,7 +2,7 @@ import sqlite3
 
 # Establish connection to or create 'support_center.db' if doesnt exist
 # Cursor is used to run SQL commands
-connection = sqlite3.connect('suport_center.db')
+connection = sqlite3.connect('support_center.db')
 cursor = connection.cursor()
 
 
