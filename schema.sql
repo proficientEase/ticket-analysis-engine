@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS tickets (
+    ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer TEXT NOT NULL,
+    issue TEXT NOT NULL,
+    priority TEXT NOT NULL,
+    status TEXT NOT NULL,
+    timestamp DEFAULT CURRENT_TIMESTAMP
+);
+
