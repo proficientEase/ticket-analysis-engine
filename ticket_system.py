@@ -50,8 +50,6 @@ mock_api_payload = """
 
 
 def ticket_system(db_path='support_center.db'):
-    # Get table structure from 'schema.sql' and apply it to 'support_center.db'
-    
         
     # Keep connection variable at this scope
     connection = None
@@ -87,7 +85,60 @@ def ticket_system(db_path='support_center.db'):
         
         structure_tables()
 
-    # Error Handling
+
+        #Ingest ticket data from API payload and insert into tables
+        def ingest_api_payload():
+            
+            try:
+
+                # Parse the JSON string from payload into list of dictionaries
+                tickets_data = json.loads(mock_api_payload) 
+                print(f"Ingesting {len(tickets_data)} tickets")
+
+                # Iterate the parsed ticket data and insert values into corresponding fields in DB
+                for ticket in tickets_data:
+                    infra = ticket['infrastructure']
+
+                    # Insert values into network_devices table
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO network_devices (device_id, hostname, model, firmware_version, ip_address)
+                        VALUES (?,?,?,?,?);
+                    """, (
+                        infra['device_id'],
+                        infra['hostname'],
+                        infra['model'],
+                        infra['firmware'],
+                        infra['ip']
+                    ))
+
+                    # Insert values into tickets table
+                    cursor.execute("""
+                        INSERT INTO tickets (external_ref_id, customer, device_id, issue_category, description, priority, status, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                    """, (
+                        ticket['api_ticket_ref'], 
+                        ticket['customer_name'], 
+                        infra['device_id'], 
+                        ticket['category'], 
+                        ticket['issue'], 
+                        ticket['severity'], 
+                        ticket['status'], 
+                        ticket['timestamp']
+                    ))
+
+                    # Get last generated auto increment key
+                    ticket_id = cursor.lastrowid
+
+            #Pipeline Error Handling
+            except sqlite3.Error as e:
+                print(f"Database pipeline error: {e}")
+
+
+
+
+
+        ingest_api_payload()
+    # Operational Error Handling
     except sqlite3.OperationalError as e:
         print(f"SQL operational error: {e}")
     except Exception as e:
@@ -99,8 +150,6 @@ def ticket_system(db_path='support_center.db'):
         if connection:
             cursor.close()
             connection.close()
-    
-    structure_tables()
 
 
 if __name__ == "__main__":
