@@ -1,4 +1,13 @@
--- Refactored Tickets Table
+-- Hardware Asset Tracking Table
+CREATE TABLE IF NOT EXISTS network_devices (
+    device_id  TEXT PRIMARY KEY,
+    hostname TEXT NOT NULL,
+    model TEXT NOT NULL,
+    firmware_version TEXT NOT NULL,
+    ip_address TEXT UNIQUE
+);
+
+-- Tickets Table
 CREATE TABLE IF NOT EXISTS tickets (
     ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
     priority TEXT CHECK(priority IN ('P1','P2','P3','P4')),
@@ -13,20 +22,11 @@ CREATE TABLE IF NOT EXISTS tickets (
     FOREIGN KEY (device_id) REFERENCES network_devices(device_id)
 );
 
--- Hardware Asset Tracking Table
-CREATE TABLE IF NOT EXISTS network_devices (
-    device_id  TEXT PRIMARY KEY,
-    hostname TEXT NOT NULL,
-    model TEXT NOT NULL,
-    firmware_version TEXT NOT NULL,
-    ip_address TEXT UNIQUE
-);
-
 
 --(6/11/2026)
 --Future Functionality
 
-/*
+
 CREATE TABLE IF NOT EXISTS ticket_routing_history (
     routing_id INTEGER PRIMARY KEY AUTOINCREMENT,
     ticket_id INTEGER,
@@ -35,4 +35,3 @@ CREATE TABLE IF NOT EXISTS ticket_routing_history (
     notes TEXT,
     FOREIGN KEY (ticket_id) REFERENCES tickets(ticket_id)
 );
-*/
