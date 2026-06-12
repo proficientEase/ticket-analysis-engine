@@ -129,15 +129,23 @@ def ticket_system(db_path='support_center.db'):
                     # Get last generated auto increment key
                     ticket_id = cursor.lastrowid
 
+                    for history in ticket['tier_history']:
+                        cursor.execute("""
+                            INSERT INTO ticket_routing_history (ticket_id, assigned_tier, notes)
+                            VALUES (?, ?, ?);
+                        """, (
+                            ticket_id,
+                            history['tier'],
+                            history['notes']
+                        ))
+
             #Pipeline Error Handling
             except sqlite3.Error as e:
                 print(f"Database pipeline error: {e}")
-
-
-
-
-
+        
         ingest_api_payload()
+
+
     # Operational Error Handling
     except sqlite3.OperationalError as e:
         print(f"SQL operational error: {e}")
