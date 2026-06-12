@@ -139,9 +139,14 @@ def ticket_system(db_path='support_center.db'):
                             history['notes']
                         ))
 
-            #Pipeline Error Handling
+            # Pipeline Error Handling
             except sqlite3.Error as e:
                 print(f"Database pipeline error: {e}")
+        
+            finally:
+                # Save changes to database
+                connection.commit()
+                print("Payload ingested and DB populated")
         
         ingest_api_payload()
 
