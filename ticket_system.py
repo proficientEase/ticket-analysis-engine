@@ -102,7 +102,11 @@ def ticket_system(db_path='support_center.db'):
                     # Insert values into network_devices table
                     cursor.execute("""
                         INSERT OR IGNORE INTO network_devices (device_id, hostname, model, firmware_version, ip_address)
-                        VALUES (?,?,?,?,?);
+                        VALUES (?,?,?,?,?)
+                        ON CONFLICT(device_id) DO UPDATE SET
+                            hostname = excluded.hostname,
+                            firmware_version = excluded.firmware_version,
+                            ip_address = excluded.ip_address;
                     """, (
                         infra['device_id'],
                         infra['hostname'],
@@ -114,7 +118,11 @@ def ticket_system(db_path='support_center.db'):
                     # Insert values into tickets table
                     cursor.execute("""
                         INSERT INTO tickets (external_ref_id, customer, device_id, issue_category, description, priority, status, created_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(external_ref_id) DO UPDATE SET
+                            status = excluded.status,
+                            description = excluded.description,
+                            priority = excluded.priority;
                     """, (
                         ticket['api_ticket_ref'], 
                         ticket['customer_name'], 
@@ -128,7 +136,9 @@ def ticket_system(db_path='support_center.db'):
 
                     # Get last generated auto increment key
                     ticket_id = cursor.lastrowid
-
+                    print(f"ticket id is {ticket_id}")
+                    
+                    # Create triage history trail
                     for history in ticket['tier_history']:
                         cursor.execute("""
                             INSERT INTO ticket_routing_history (ticket_id, assigned_tier, notes)
