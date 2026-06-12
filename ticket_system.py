@@ -29,6 +29,7 @@ def structure_tables(db_path= 'support_center.db', schema_path='schema.sql'):
         connection.commit()
         print("Database tables built")
 
+    # Error Handling
     except FileNotFoundError:
         print(f"File '{schema_path}' not found.")
     except sqlite3.OperationalError as e:
@@ -38,6 +39,7 @@ def structure_tables(db_path= 'support_center.db', schema_path='schema.sql'):
     
     finally:
         # Close connections for safety
+        # Otherwise I get scared 
         if connection:
             cursor.close()
             connection.close()
