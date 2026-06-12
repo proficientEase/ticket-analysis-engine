@@ -6,9 +6,9 @@ import json
 mock_api_payload = """
     [
         {
-            "api_ticket_ref": "INC-99412",
-            "customer_name": "Global Logistics Corp",
-            "issue": "BGP Flapping - Primary link dropping peers intermittently",
+            "external_ref_id": "INC-99412",
+            "customer": "Global Logistics Corp",
+            "description": "BGP Flapping - Primary link dropping peers intermittently",
             "category": "Routing / BGP",
             "severity": "P1",
             "status": "In_Progress",
@@ -26,9 +26,9 @@ mock_api_payload = """
             }
         },
         {
-            "api_ticket_ref": "INC-99413",
-            "customer_name": "Fintech Secure Pay",
-            "issue": "IPsec VPN Tunnel Down between HQ and AWS VPC",
+            "external_ref_id": "INC-99413",
+            "customer": "Fintech Secure Pay",
+            "description": "IPsec VPN Tunnel Down between HQ and AWS VPC",
             "category": "Security / VPN",
             "severity": "P2",
             "status": "Open",
@@ -97,6 +97,10 @@ def ticket_system(db_path='support_center.db'):
 
                 # Iterate the parsed ticket data and insert values into corresponding fields in DB
                 for ticket in tickets_data:
+                    
+                    #ticket_id = ticket[]
+                    #print(f"ticket id is {ticket_id}")
+
                     infra = ticket['infrastructure']
 
                     # Insert values into network_devices table
@@ -117,18 +121,18 @@ def ticket_system(db_path='support_center.db'):
 
                     # Insert values into tickets table
                     cursor.execute("""
-                        INSERT INTO tickets (external_ref_id, customer, device_id, issue_category, description, priority, status, created_at)
+                        INSERT INTO tickets (external_ref_id, customer, device_id, category, description, severity, status, timestamp)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(external_ref_id) DO UPDATE SET
                             status = excluded.status,
                             description = excluded.description,
-                            priority = excluded.priority;
+                            severity = excluded.severity;
                     """, (
-                        ticket['api_ticket_ref'], 
-                        ticket['customer_name'], 
+                        ticket['external_ref_id'], 
+                        ticket['customer'], 
                         infra['device_id'], 
                         ticket['category'], 
-                        ticket['issue'], 
+                        ticket['description'], 
                         ticket['severity'], 
                         ticket['status'], 
                         ticket['timestamp']

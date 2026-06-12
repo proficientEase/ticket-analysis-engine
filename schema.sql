@@ -10,14 +10,14 @@ CREATE TABLE IF NOT EXISTS network_devices (
 -- Tickets Table
 CREATE TABLE IF NOT EXISTS tickets (
     ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    priority TEXT CHECK(priority IN ('P1','P2','P3','P4')),
+    severity TEXT CHECK(severity IN ('P1','P2','P3','P4')),
     external_ref_id TEXT UNIQUE,
     customer TEXT NOT NULL,
     device_id TEXT,                 --Links to network_devices(device_id)
-    issue_category TEXT NOT NULL,
+    category TEXT NOT NULL,
     description TEXT NOT NULL,
     status TEXT CHECK(status IN ('Open','In_Progress','Pending','Resolved')),
-    created_at DEFAULT CURRENT_TIMESTAMP,
+    timestamp DEFAULT CURRENT_TIMESTAMP,
     resolved_at TEXT,
     FOREIGN KEY (device_id) REFERENCES network_devices(device_id)
 );
