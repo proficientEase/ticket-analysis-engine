@@ -56,7 +56,6 @@ def ticket_system(db_path='support_center.db'):
 
     try: 
         # Establish connection to or create 'support_center.db' if doesnt exist
-        # Cursor is used to run SQL commands
         connection = sqlite3.connect(db_path)
         cursor = connection.cursor()
 
@@ -75,14 +74,17 @@ def ticket_system(db_path='support_center.db'):
                     # Use cursor.executescript() instead of .execute() to parse multiple lines of SQL
                     cursor.executescript(sql_script)
             
+             # Error Handling
             except FileNotFoundError:
                 print(f"File '{schema_path}' not found.")
-                
+
+             # Apply the table layout to 'support_center.db' 
             finally:
-                # Apply the table layout to 'support_center.db'
+                
                 connection.commit()
                 print("Database tables built")
-        
+
+         # Run the function to structure the SQL tables
         structure_tables()
 
 
@@ -139,38 +141,78 @@ def ticket_system(db_path='support_center.db'):
                     ))
 
                     # Get last generated auto increment key
+                    
                     ticket_id = cursor.lastrowid
                     print(f"ticket id is {ticket_id}")
-                    
-                    # Create triage history trail
-                    for history in ticket['tier_history']:
-                        cursor.execute("""
-                            INSERT INTO ticket_routing_history (ticket_id, assigned_tier, notes)
-                            VALUES (?, ?, ?);
-                        """, (
-                            ticket_id,
-                            history['tier'],
-                            history['notes']
-                        ))
 
-            # Pipeline Error Handling
+                    
+                    # Handle audit history log
+
+                    def log_audit_history():
+
+                        # Fetch ticket id 
+                        cursor.execute("SELECT ticket_id FROM tickets WHERE external_ref_id = ?", [ticket['external_ref_id']])
+                        result = cursor.fetchone()
+
+                        if result:
+                            ticket_id = result[0]
+                            print(f"checking ticket {ticket_id}")
+
+                            for history in ticket['tier_history']:
+                                
+                                # Check if note exists
+                                cursor.execute("""
+                                    SELECT 1 FROM ticket_routing_history
+                                    WHERE ticket_id = ? AND assigned_tier = ? AND notes = ?
+                                """, (
+                                    ticket_id,
+                                    history['tier'],
+                                    history['notes']
+                                ))
+
+                                # If note exists, assign note_exists
+                                note_exists = cursor.fetchone()
+
+                                # Insert new note into log if it doesn't exist
+                                if not note_exists:
+                                    cursor.execute("""
+                                    INSERT INTO ticket_routing_history (ticket_id, assigned_tier, notes)
+                                    VALUES (?, ?, ?);
+                                    """, (
+                                        ticket_id,
+                                        history['tier'],
+                                        history['notes']
+                                    ))
+
+                                    print(f"Logged new history update for ticket {ticket['external_ref_id']}")
+                                else:
+                                    # If it already exists, we skip it 
+                                    print(f"This history log for ticket {ticket['external_ref_id']} already exists. Skipping.")
+                     
+                     # Run the function to log audit history                 
+                    log_audit_history()
+
+             # Pipeline Error Handling
             except sqlite3.Error as e:
                 print(f"Database pipeline error: {e}")
-        
+
+             # Save changes to database
             finally:
-                # Save changes to database
                 connection.commit()
                 print("Payload ingested and DB populated")
-        
+         
+         # Run the function to ingest the api payload
         ingest_api_payload()
 
 
-    # Operational Error Handling
+     # Operational Error Handling
     except sqlite3.OperationalError as e:
         print(f"SQL operational error: {e}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-    
+     
+
+     # Last steps and closing connections
     finally:
         # Close connections for safety
         # Otherwise I get scared 
